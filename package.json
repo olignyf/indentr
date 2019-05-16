@@ -1,6 +1,6 @@
 {
   "name": "indentr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Automatically indent and beautify the code in your whole project directory. It scans available files and process each.",
   "main": "index.js",
   "scripts": {
