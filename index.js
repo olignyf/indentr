@@ -1,7 +1,6 @@
 const path = require('path');
 const fs = require('fs');
 var beautify = require('js-beautify').js;
-var isUtf8 = require('is-utf8');
 
 const args = process.argv.slice(2)
 
@@ -16,6 +15,8 @@ if (!fs.existsSync(directoryPath)) {
   console.log("Failed to locate directory");
   exit(10);
 }
+
+var backup = false;
 
 var options = {
     "indent_size": 2,
@@ -59,8 +60,7 @@ var processOneDir = function(directoryPath)
        {
           var hasBom = false;
           console.log(file); 
-          
-          
+                    
           const filePath = path.join(directoryPath, file);
           var binary = fs.readFileSync(filePath, 'utf8');
           
@@ -81,38 +81,31 @@ var processOneDir = function(directoryPath)
             
             if (fixedContent !== data)
             {
-              fs.writeFile(filePath+".bak", data, 'utf8', function(err) 
+              if (backup) fs.writeFileSync(filePath+".bak", data, 'utf8');
+              
+              // Custom processing.
+              // remove two space everywhere if using define([..]);
+              if (fixedContent.match(/^ ?define\(\[|\n ?define\(\[/) ||
+                  fixedContent.match(/^ ?require\(\[|\n ?require\(\[/))
+              {
+                fixedContent = fixedContent.replace(/\n  /g, "\n");
+                console.log("DEFINE START", file);
+              }
+              else
+              {
+                console.log("NOT DEFINE START", file);
+              }
+              
+              // Handle UTF8 BOM
+              if (hasBom) {
+                fixedContent = '\ufeff' + fixedContent;
+              }
+              
+              fs.writeFile(filePath, fixedContent, 'utf8', function(err) 
               {
                 if (err) {
                   throw err;
                 }
-                
-                // Handle UTF8 BOM
-                
-                // Custom processing.
-                // remove two space everywhere if using define([..]);
-                if (fixedContent.match(/^ ?define\(\[|\n ?define\(\[/) ||
-                    fixedContent.match(/^ ?require\(\[|\n ?require\(\[/))
-                {
-                  fixedContent = fixedContent.replace(/\n  /g, "\n");
-                  console.log("DEFINE START", file);
-                }
-                else
-                {
-                  console.log("NOT DEFINE START", file);
-                }
-                
-                if (hasBom) {
-                  fixedContent = '\ufeff' + fixedContent;
-                }
-                
-                fs.writeFile(filePath+".fx.txt", fixedContent, 'utf8', function(err) 
-                {
-                  if (err) {
-                    throw err;
-                  }
-                });
-                
               });
             }
           });
@@ -135,3 +128,4 @@ var processOneDir = function(directoryPath)
 
 
 processOneDir(directoryPath);
+
