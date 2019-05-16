@@ -1,0 +1,15 @@
+{
+  "name": "indenter",
+  "version": "1.0.0",
+  "description": "Automatically indent and beautify the code in your whole project directory. It scans available files and process each.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "is-utf8": "^0.2.1",
+    "js-beautify": "^1.9.1"
+  }
+}
