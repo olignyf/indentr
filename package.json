@@ -10,5 +10,8 @@
   "license": "GPLv2",
   "dependencies": {
     "js-beautify": "^1.9.1"
+  },
+  "bin": {
+    "indentr": "./index.js"
   }
 }

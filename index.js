@@ -1,8 +1,20 @@
+#! /usr/bin/env node
+
+'use strict';
+
 const path = require('path');
 const fs = require('fs');
 var beautify = require('js-beautify').js;
 
 const args = process.argv.slice(2)
+
+//console.log("process.argv.length",process.argv.length);
+  
+if (process.argv.length <= 2) {
+  console.log("Usage:");
+  console.log("indentr <path-to-project>");
+  process.exit(1);
+}
 
 var directoryPath = args[0];
 console.log("checking path", directoryPath);
@@ -13,7 +25,7 @@ if (!fs.existsSync(directoryPath)) {
 
 if (!fs.existsSync(directoryPath)) {
   console.log("Failed to locate directory");
-  exit(10);
+  process.exit(10);
 }
 
 var backup = false;
@@ -24,7 +36,7 @@ var options = {
     "indent_with_tabs": false,
     "editorconfig": false,
     "eol": "\n",
-    "end_with_newline": false,
+    "end_with_newline": true,
     "indent_level": 0,
     "preserve_newlines": true,
     "max_preserve_newlines": 10,
@@ -66,9 +78,8 @@ var processOneDir = function(directoryPath)
           
           if (binary.match(/^\uFEFF/))
           {
-             console.log("BOM", file);
+             //console.log("BOM", file);
              hasBom = true;
-            // process.exit(0);
           }
           
           fs.readFile(filePath, 'utf8', function (err, data)
@@ -76,32 +87,28 @@ var processOneDir = function(directoryPath)
             if (err) {
               throw err;
             }
-            var fixedContent = beautify(data, options);
-            //console.log(fixedContent);
+            var indentedContent = beautify(data, options);
+            //console.log(indentedContent);
             
-            if (fixedContent !== data)
+            if (indentedContent !== data)
             {
               if (backup) fs.writeFileSync(filePath+".bak", data, 'utf8');
               
               // Custom processing.
-              // remove two space everywhere if using define([..]);
-              if (fixedContent.match(/^ ?define\(\[|\n ?define\(\[/) ||
-                  fixedContent.match(/^ ?require\(\[|\n ?require\(\[/))
+              // remove two space everywhere if using define([..]); or require([..]);
+              if (indentedContent.match(/^ ?define\(\[|\n ?define\(\[/) ||
+                  indentedContent.match(/^ ?require\(\[|\n ?require\(\[/))
               {
-                fixedContent = fixedContent.replace(/\n  /g, "\n");
-                console.log("DEFINE START", file);
-              }
-              else
-              {
-                console.log("NOT DEFINE START", file);
+                indentedContent = indentedContent.replace(/\n  /g, "\n");
+                //console.log("DEFINE START", file);
               }
               
               // Handle UTF8 BOM
               if (hasBom) {
-                fixedContent = '\ufeff' + fixedContent;
+                indentedContent = '\ufeff' + indentedContent;
               }
               
-              fs.writeFile(filePath, fixedContent, 'utf8', function(err) 
+              fs.writeFile(filePath, indentedContent, 'utf8', function(err) 
               {
                 if (err) {
                   throw err;
